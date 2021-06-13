@@ -1,0 +1,266 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://addons/Debug Console/debug_console.gd" type="Script" id=1]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 0.133333 )
+
+[sub_resource type="StyleBoxFlat" id=2]
+bg_color = Color( 0.6, 0.6, 0.6, 0 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 1, 1, 1, 0 )
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0, 0, 0, 0 )
+
+[sub_resource type="StyleBoxFlat" id=5]
+bg_color = Color( 0, 0, 0, 0.133333 )
+
+[node name="Debug Layer" type="CanvasLayer"]
+pause_mode = 2
+layer = 128
+__meta__ = {
+"_editor_description_": "This is the root canvas layer for all debug controls. It's set to the highest possible value, meaning it will always appear above everything else by default."
+}
+
+[node name="DebugFrame" type="Control" parent="."]
+pause_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 0.499451
+margin_bottom = 0.499451
+focus_mode = 2
+mouse_filter = 2
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": "Parent control for the UI elements within the scene."
+}
+
+[node name="Output" type="TextEdit" parent="DebugFrame"]
+pause_mode = 2
+visible = false
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -190.0
+margin_bottom = -35.0
+custom_styles/read_only = SubResource( 1 )
+custom_styles/focus = SubResource( 2 )
+custom_styles/normal = SubResource( 3 )
+readonly = true
+wrap_enabled = true
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": "Output for user commands while in-game."
+}
+
+[node name="GraphicsAPI" type="Label" parent="DebugFrame/Output"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -40.0
+margin_top = -33.0
+margin_right = -10.0
+grow_horizontal = 0
+grow_vertical = 0
+custom_colors/font_color = Color( 0.0156863, 0.87451, 0.976471, 0.74902 )
+align = 2
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Input" type="LineEdit" parent="DebugFrame"]
+visible = false
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -35.0
+custom_styles/focus = SubResource( 4 )
+custom_styles/normal = SubResource( 5 )
+max_length = 255
+placeholder_text = "Type \"help\" for a list of commands"
+caret_blink = true
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": "Input for user commands while in-game."
+}
+
+[node name="DebugLabelVbox" type="VBoxContainer" parent="DebugFrame"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -109.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -10.0
+grow_horizontal = 0
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": "Container for the labels that display in-game debug stats/values"
+}
+
+[node name="FPSCounter" type="Label" parent="DebugFrame/DebugLabelVbox"]
+visible = false
+margin_right = 99.0
+margin_bottom = 14.0
+align = 2
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": "A basic frames per second counter"
+}
+
+[node name="Stats" type="Label" parent="DebugFrame/DebugLabelVbox"]
+visible = false
+margin_top = 18.0
+margin_right = 99.0
+margin_bottom = 32.0
+align = 2
+__meta__ = {
+"_editor_description_": "Various stats are displayed here"
+}
+
+[node name="CommandHelp" type="WindowDialog" parent="DebugFrame"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -261.0
+margin_top = -216.0
+margin_right = 261.0
+margin_bottom = 216.0
+window_title = "Help"
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": "A popup window that displays the full list of commands and what they do."
+}
+
+[node name="TabContainer" type="TabContainer" parent="DebugFrame/CommandHelp"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Commands" type="Tabs" parent="DebugFrame/CommandHelp/TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 42.0
+margin_right = -4.0
+margin_bottom = -4.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HSplitContainer" type="HSplitContainer" parent="DebugFrame/CommandHelp/TabContainer/Commands"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+split_offset = -125
+dragger_visibility = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Commands" type="RichTextLabel" parent="DebugFrame/CommandHelp/TabContainer/Commands/HSplitContainer"]
+margin_right = 132.0
+margin_bottom = 386.0
+grow_horizontal = 0
+size_flags_horizontal = 3
+custom_constants/line_separation = 10
+text = "\"help\"
+\"clear\"
+\"quit\"
+\"cr\"
+\"fov\"
+\"mw\"
+\"fxaa\"
+\"msaa\"
+\"mt\"
+\"debug stats\"
+\"debug fps\"
+\"debug reload\"
+\"debug draw\"        
+\"debug desc\"       
+\"debug name\" "
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
+
+[node name="Descriptions" type="RichTextLabel" parent="DebugFrame/CommandHelp/TabContainer/Commands/HSplitContainer"]
+margin_left = 132.0
+margin_right = 514.0
+margin_bottom = 386.0
+grow_horizontal = 0
+size_flags_horizontal = 3
+custom_constants/line_separation = 10
+text = "- Displays all available commands
+- Clears all output and input text
+- Forces the program to immediately quit
+- Change resolution, changes the window's resolution
+- Field of view, changes the camera's fov in a 3D scene
+- Modify window, changes the window state
+- Toggle FXAA on or off
+- Toggle between MSAA settings
+- Mod time, changes the in-game time scale
+- Displays useful statistics in-game
+- Displays the current frames per second in-game
+- Reloads the current scene
+- Displays 3D objects in a debug-overdraw mode
+- Prints the game's description to the output
+- Prints the game's name to the output"
+
+[node name="Usage" type="Tabs" parent="DebugFrame/CommandHelp/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 42.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Label" type="Label" parent="DebugFrame/CommandHelp/TabContainer/Usage"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "In order to use a command you simply have to type it's prefix followed by the value. Some commands only have a prefix, like the \"help\" command. Others like the \"cr\" (short for  \"change resolution\")  command require the prefix followed by a space, then the value.
+
+Example: cr 300,400
+
+This exact command will change the window resolution to be 300x400 pixels.
+
+
+Commands such as \"mw\" (short for \"modify window\") expect a keyword.
+
+Example: mw fullscreen
+
+That will set the window into fullscreen mode."
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="About" type="Tabs" parent="DebugFrame/CommandHelp/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 42.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Label" type="Label" parent="DebugFrame/CommandHelp/TabContainer/About"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "This is a general-purpose debug console designed to be used in a wide variety of projects. It contains universally useful commands that work great for testing many things out mid-game."
+align = 1
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="cursor_changed" from="DebugFrame/Output" to="DebugFrame/Input" method="_on_Output_cursor_changed"]
+[connection signal="text_entered" from="DebugFrame/Input" to="DebugFrame/Input" method="_on_Input_text_entered"]

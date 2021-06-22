@@ -22,8 +22,11 @@ Below is a list of all available commands that the debug console will accept. It
 - clear
 - quit
 - cr `int,int`
-- mw `fullscreen, windowed, borderless, bordered, vsync`
+- mw `fullscreen, windowed, borderless, bordered`
 - mt `float`
+- vsync
+- fxaa
+- msaa `int`
 - ma `string`, optional: `string`
 - fov `float`
 - debug `name, desc, fps, stats, draw, reload`

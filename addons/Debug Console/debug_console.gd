@@ -132,7 +132,7 @@ func _physics_process(delta): # Process info
 func _input(event):
 	if self.visible == false && enable_console == true:
 		if event is InputEventKey && event.is_action_released("debug") && \
-		!event.is_echo() && event.scancode == KEY_QUOTELEFT:
+		!event.is_echo():
 			self.grab_focus()
 			self.visible = true
 			output.visible = true
@@ -140,7 +140,7 @@ func _input(event):
 			get_tree().paused = !get_tree().paused # Toggle pause
 	else:
 		if event is InputEventKey && event.is_action_released("debug") && \
-		!event.is_echo() && event.scancode == KEY_QUOTELEFT:
+		!event.is_echo():
 			self.delete_char_at_cursor()
 			self.release_focus()
 			self.visible = false

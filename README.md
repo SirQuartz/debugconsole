@@ -14,7 +14,7 @@ I made this debug console to be a tool used in any type of project by incorporat
 This scene is autoloaded and persistent across all scenes, therefore, you don't need to instance it into every scene, it already exists within every scene by default. When the debug console is brought up it automatically pauses the game, then when it's exited it automatically unpauses the game for you.
 
 ## Usage
-Copy the `addons/Debug Console` folder into your projects directory, Then autoload the `console.tscn` scene within the Debug Console folder. This will make it present in every scene within your game. Press the tilde "~" on American keyboards just below the escape button to make the debug console appear in-game.
+Copy the `addons/Debug Console` folder into your projects directory, Then autoload the `console.tscn` scene within the Debug Console folder. This will make it present in every scene within your game. Next you need to create a new `InputEventAction` by going to Project>Project Settings>Input Map and create an action called "debug" and assign it a key. Press the "debug" action to bring up the console in-game.
 
 ## Commands
 Below is a list of all available commands that the debug console will accept. It works by typing the prefix followed by a space then enter the value.

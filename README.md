@@ -1,7 +1,7 @@
 # Debug Console
 A general-purpose debug console for the Godot Engine.
 
-![Debug Console](screenshots/Debug-Console-Demo.gif)
+![Debug Console](screenshots/Debug-Console-Demov1.gif)
 ## Features
 - Debugging suite full of useful in-game commands
 - Usable in any project

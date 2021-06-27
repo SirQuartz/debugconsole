@@ -28,7 +28,7 @@ Below is a list of all available commands that the debug console will accept. It
 - mt `float`
 - vsync
 - fxaa
-- msaa `int`
+- msaa `2, 4, 8, off`
 - fov `float`
 - debug `name, desc, fps, stats, draw, reload`
 

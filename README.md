@@ -29,7 +29,6 @@ Below is a list of all available commands that the debug console will accept. It
 - vsync
 - fxaa
 - msaa `int`
-- ma `string` optional: `string`
 - fov `float`
 - debug `name, desc, fps, stats, draw, reload`
 

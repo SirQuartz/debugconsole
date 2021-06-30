@@ -27,9 +27,15 @@ SOFTWARE.
 
 export var enable_console: bool = true # True if the console is enabled
 export var mouse_visible_on_unpause: bool = true # Sets mouse visibility on exit
+export var user_space: bool = false # Sets whether to use user:// or res://
 
 var last_command: String # Temporary var for last input command
 var err = OK  # Check for errors
+var file: String # File name for a screenshot
+var screenshot: Image # The actual screenshot
+var taking_screenshot: bool # Flag for the console so it knows we're busy
+var calling_func: bool # Flag for the console so it knows we're busy
+var user_path: String
 
 # GUI vars
 onready var output = get_parent().get_node("Output")
@@ -43,26 +49,44 @@ onready var viewport = get_tree().get_current_scene().get_viewport()
 func _on_Input_text_entered(new_text: String):
 	var input_text = new_text.to_lower().lstrip(" ").rstrip(" ") # Convert
 	self.clear()
-	self.placeholder_text = ""
+	self.placeholder_text = "" # Get rid of the placeholder text
 	var command = input_text.to_lower().split(" ")
 	if input_text == "help": # Display list of commands
-		self.text = "Here is a list of commands"
+		self.placeholder_text = "Here is a list of commands"
 		get_parent().get_node("CommandHelp").popup()
 	if input_text == "clear": # Clear all output
 		self.clear()
 		output.text = ''
-	if input_text == "quit":
+	if input_text == "quit": # Closes the game
 		get_tree().quit(0)
-	if err == OK && command.size() == 1:
+	if taking_screenshot == true:
+		file = new_text
+		self.placeholder_text = ""
+		screenshot.save_png(user_path + "Screenshots/" + file + ".png")
+	if "." in new_text: # If were calling a method on an object
+		var entity = new_text.split(".")
+		var final_entity = entity[1].split(" ")
+		var option = new_text.strip_edges().split(" ")
+		option.remove(0)
+		call_func(str(entity[0]), str(final_entity[0]), option)
+	if err == OK && command.size() == 1 && !taking_screenshot == true && \
+	calling_func == false:
 		commands(command[0], "", "")
-	elif err == OK && command.size() == 2:
+	elif err == OK && command.size() == 2 && !taking_screenshot == true && \
+	calling_func == false:
 		commands(command[0], command[1])
-	elif err == OK && command.size() == 3:
+	elif err == OK && command.size() == 3 && !taking_screenshot == true && \
+	calling_func == false:
 		commands(command[0], command[1], command[2])
-	else:
-		last_command = input_text
-		output.text += "Unknown command, " + "<" + input_text + ">" + \
+	elif err == OK && taking_screenshot == true:
+		output.text += "Screenshot " + file + " saved." + '\n'
+		taking_screenshot = false
+	elif err != OK && taking_screenshot == false && calling_func == false:
+		last_command = new_text
+		output.text += "Unknown command, " + "<" + new_text + ">" + \
 		" not recognized" + '\n'
+	calling_func = false
+	taking_screenshot = false
 
 
 # Make the output text jump to newest line
@@ -71,15 +95,38 @@ func _on_Output_cursor_changed():
 	output.cursor_set_line(count)
 
 
+# Waits to take a screenshot so that the debug overlay has time to be hidden
+func _on_Timer_timeout():
+	var img = get_tree().get_current_scene().get_viewport().get_texture()\
+	.get_data() # Grab the viewport texture
+	img.flip_y() # Flip the image vertically so it's upright
+	var dir = Directory.new() # If screenshots folder doesn't exist, make it
+	if dir.open(user_path + "Screenshots") != err:
+		dir.make_dir(user_path + "Screenshots")
+	self.get_parent().show() # Show the debug overlay again
+	self.placeholder_text = "Enter a name for the screenshot"
+	taking_screenshot = true # Let the console know we're busy
+	screenshot = img # The final image to save
+	self.grab_focus()
+
+
 func _enter_tree():
 	if enable_console == false: # If console is disabled, remove it
 		self.get_parent().get_parent().queue_free()
-
+	if user_space == true:
+		user_path = "user://"
+	else:
+		user_path = "res://"
+	
+func _notification(what):
+	if what == ERR_SCRIPT_FAILED:
+		if calling_func == true:
+			output.text += "There was a error."
 
 func _ready():
 	var os = OS.get_name()
 	var api = OS.get_current_video_driver()
-	match os:
+	match os: # Match the graphics API to the corresponding OS
 		"HTML5":
 			if api == 0:
 				graphics_api.text = "WebGL 2.0"
@@ -100,7 +147,7 @@ func _ready():
 func _process(delta): # Only FPS needs to be measured as fast as possible
 	var fps = Engine.get_frames_per_second()
 	fps_counter.text = "FPS: " + str(fps)
-
+	
 
 func _physics_process(delta): # Process info
 	var debug_smem = OS.get_static_memory_usage()
@@ -158,7 +205,7 @@ func _input(event):
 # Handles all input commands, uses a prefix-command system, split by a space
 func commands(prefix: String, command: String = "", Option: String = ""):
 	# Write the command to the output window
-	if !prefix == "clear":
+	if !prefix == "clear": # Don't print the clear command to the output log
 		output.text += prefix + " " + command + '\n'
 	match prefix: # Match the prefix, then check for the relevant command
 		"cr", "change_resolution":
@@ -178,13 +225,15 @@ func commands(prefix: String, command: String = "", Option: String = ""):
 			mod_alias("msaa", command)
 		"vsync":
 			mod_window("vsync")
-		"fov", "field_of_view":
+		"shoot": # Take a screenshot of the viewport
+			take_screenshot()
+		"fov", "field_of_view": # Modify the field of view in 3D scenes
 			mod_fov(command)
-		"mt", "modify_time":
+		"mt", "modify_time": # Modify the in-game time scale relative to ours
 			mod_time(command)
 		"debug":
 			game_info(command)
-		"help", "clear", "quit":
+		"help", "clear", "quit", "shoot", "y", "n": # If just a prefix, ignore
 			pass
 		_:
 			output.text += "Unknown command, " + \
@@ -246,14 +295,33 @@ func game_info(command: String):
 				output.text += "Stats disabled" + '\n'
 				stats.visible = false
 		"draw": # Toggle overdraw on or off
-			if viewport.get_debug_draw() != Viewport.DEBUG_DRAW_OVERDRAW:
+			if OS.get_video_driver_name(1):
+				output.text += "Debug draw mode only works with a GLES3 " + \
+				"render backend." + '\n'
+			elif viewport.get_debug_draw() != Viewport.DEBUG_DRAW_OVERDRAW \
+			&& OS.is_debug_build() && OS.get_current_video_driver() == 0:
 				viewport.set_debug_draw(Viewport.DEBUG_DRAW_OVERDRAW)
 				output.text += "Debug draw enabled." + '\n'
+			elif !OS.is_debug_build():
+				output.text += "Debug draw doesn't work in non-debug binaries."\
+				+ '\n'
 			else:
 				viewport.set_debug_draw(Viewport.DEBUG_DRAW_DISABLED)
 				output.text += "Debug draw disabled." + '\n'
+		"ray":
+			if get_tree().is_debugging_collisions_hint() == false:
+				get_tree().set_debug_collisions_hint(true)
+				get_tree().reload_current_scene()
+				output.text += "Scene reloaded!" + '\n'
+				output.text += "Debug ray enabled." + '\n'
+			elif get_tree().is_debugging_collisions_hint() == true:
+				get_tree().set_debug_collisions_hint(false)
+				get_tree().reload_current_scene()
+				output.text += "Scene reloaded!" + '\n'
+				output.text += "Debug ray enabled." + '\n'
 		"reload": # Reload the current scene
 			get_tree().reload_current_scene()
+			output.text += "Scene reloaded!" + '\n'
 		_:
 			output.text += \
 			"Unknown command, " + "<" + command + ">" + " not recognized." +'\n'
@@ -262,9 +330,13 @@ func game_info(command: String):
 # Modifies the in-game time scale
 func mod_time(command):
 	if str2var(command) is float:
-		Engine.set_time_scale(float(command))
+		Engine.set_time_scale(abs(float(command)))
+		output.text += "Time scale set to " + str(abs(float(command)) * 100) + \
+		" %" + '\n'
 	elif str2var(command) is int:
-		Engine.set_time_scale(int(command))
+		Engine.set_time_scale(abs(int(command)))
+		output.text += "Time scale set to " + str(abs(int(command)) * 100) + \
+		" %" + '\n'
 	else:
 		output.text += "<"+str(command)+">" + \
 		" is not a value for modify time." + '\n'
@@ -292,7 +364,7 @@ func mod_fov(command):
 func mod_alias(command, value = null):
 	match command:
 		"msaa":
-			match value:
+			match value: # Matches the corresponding MSAA value and sets it
 				"2":
 					viewport.set_msaa(Viewport.MSAA_2X)
 					output.text += command + " set to " + value + "x" + '\n'
@@ -313,10 +385,10 @@ func mod_alias(command, value = null):
 				"":
 					if viewport.get_use_fxaa() == false:
 						viewport.set_use_fxaa(true)
-						output.text += command + " set to true." + '\n'
+						output.text += command + " set to on." + '\n'
 					else:
 						viewport.set_use_fxaa(false)
-						output.text += command + " set to false." + '\n'
+						output.text += command + " set to off." + '\n'
 				_:
 					output.text += command + " " + value + " not recognized." \
 					+ '\n'
@@ -335,3 +407,41 @@ func get_msaa_value():
 			return "4X"
 		Viewport.MSAA_8X:
 			return "8X"
+
+
+# Hides the debug overlay, starts timer, takes a screenshot of the viewport
+func take_screenshot():
+	self.get_parent().hide()
+	var timer = get_parent().get_node("Timer")
+	timer.start()
+
+
+# Calls a function manually on the first object occurence in the current scene
+func call_func(object: String, method: String, option: Array):
+	calling_func = true # Tell the console we're busy
+	var a: Node
+	if get_tree().get_current_scene().find_node(object): # Did you find it?
+		a = get_tree().get_current_scene().find_node(object)
+	elif get_tree().get_root().get_node(object): # Is it a singleton?
+		a = get_tree().get_root().get_node(object)
+	else:
+		output.text += "<" + str(object) + ">" + \
+			" doesn't exist in the current scene." + '\n'
+	if method != "" && a != null: # Make sure they actually entered a method
+		if a.has_method(method) :
+			if option.size() == 0: # Check if there's any optional argument set
+				a.call(method) # Call the method on the object
+			if option.size() == 1: # Use optional arguments if we have any
+				a.call(method, str2var(option[0]))
+			elif option.size() == 2:
+				a.call(method, str2var(option[0]), str2var(option[1]))
+			elif option.size() == 3:
+				a.call(method, str2var(option[0]), str2var(option[1]), \
+				str2var(option[2]))
+			else:
+				output.text += "You've entered more arguments than " + \
+				"the console can process." + '\n'
+			output.text += str(method) + " called on " + str(object) + '\n'
+		else:
+			output.text += "<" + str(object) + ">" + " doesn't have method " \
+			+ "<" + str(method) + ">." + '\n'

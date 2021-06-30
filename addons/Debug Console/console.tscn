@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://addons/Debug Console/debug_console.gd" type="Script" id=1]
 
@@ -88,14 +88,15 @@ __meta__ = {
 "_edit_use_anchors_": false,
 "_editor_description_": "Input for user commands while in-game."
 }
+user_space = true
 
 [node name="DebugLabelVbox" type="VBoxContainer" parent="DebugFrame"]
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = -109.0
+margin_left = -108.471
 margin_top = 10.0
-margin_right = -10.0
+margin_right = -9.47083
 margin_bottom = -10.0
 grow_horizontal = 0
 __meta__ = {
@@ -128,11 +129,12 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -261.0
-margin_top = -216.0
-margin_right = 261.0
-margin_bottom = 216.0
+margin_left = -260.0
+margin_top = -233.0
+margin_right = 260.0
+margin_bottom = 244.0
 window_title = "Help"
+resizable = true
 __meta__ = {
 "_edit_use_anchors_": false,
 "_editor_description_": "A popup window that displays the full list of commands and what they do."
@@ -141,38 +143,51 @@ __meta__ = {
 [node name="TabContainer" type="TabContainer" parent="DebugFrame/CommandHelp"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+margin_left = 0.49939
+margin_right = 0.49939
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Commands" type="Tabs" parent="DebugFrame/CommandHelp/TabContainer"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
-margin_top = 42.0
+margin_top = 32.0
 margin_right = -4.0
 margin_bottom = -4.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="HSplitContainer" type="HSplitContainer" parent="DebugFrame/CommandHelp/TabContainer/Commands"]
+[node name="VSplitContainer" type="VSplitContainer" parent="DebugFrame/CommandHelp/TabContainer/Commands"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+split_offset = 400
+dragger_visibility = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HSplitContainer" type="HSplitContainer" parent="DebugFrame/CommandHelp/TabContainer/Commands/VSplitContainer"]
+margin_right = 512.0
+margin_bottom = 400.0
 split_offset = -125
 dragger_visibility = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Commands" type="RichTextLabel" parent="DebugFrame/CommandHelp/TabContainer/Commands/HSplitContainer"]
-margin_right = 132.0
-margin_bottom = 386.0
+[node name="Commands" type="RichTextLabel" parent="DebugFrame/CommandHelp/TabContainer/Commands/VSplitContainer/HSplitContainer"]
+margin_right = 131.0
+margin_bottom = 400.0
 grow_horizontal = 0
 size_flags_horizontal = 3
 custom_constants/line_separation = 10
 text = "\"help\"
 \"clear\"
+\"shoot\"
 \"quit\"
 \"cr\"
 \"fov\"
@@ -191,21 +206,22 @@ __meta__ = {
 "_editor_description_": ""
 }
 
-[node name="Descriptions" type="RichTextLabel" parent="DebugFrame/CommandHelp/TabContainer/Commands/HSplitContainer"]
-margin_left = 132.0
-margin_right = 514.0
-margin_bottom = 386.0
+[node name="Descriptions" type="RichTextLabel" parent="DebugFrame/CommandHelp/TabContainer/Commands/VSplitContainer/HSplitContainer"]
+margin_left = 131.0
+margin_right = 512.0
+margin_bottom = 400.0
 grow_horizontal = 0
 size_flags_horizontal = 3
 custom_constants/line_separation = 10
 text = "- Displays all available commands
 - Clears all output and input text
-- Forces the program to immediately quit
+- Takes a screenshot of the in-game viewport
+- Causes the program to quit
 - Change resolution, changes the window's resolution
 - Field of view, changes the camera's fov in a 3D scene
 - Modify window, changes the window state
 - Toggle FXAA on or off
-- Toggle between MSAA settings
+- Toggle between MSAA settings (off, 2,  4, 8)
 - Mod time, changes the in-game time scale
 - Displays useful statistics in-game
 - Displays the current frames per second in-game
@@ -214,12 +230,18 @@ text = "- Displays all available commands
 - Prints the game's description to the output
 - Prints the game's name to the output"
 
+[node name="Note" type="RichTextLabel" parent="DebugFrame/CommandHelp/TabContainer/Commands/VSplitContainer"]
+margin_top = 400.0
+margin_right = 512.0
+margin_bottom = 441.0
+text = "Note: \"debug draw\" will not work if your project is exported, nor will it work if you're not using GLES3."
+
 [node name="Usage" type="Tabs" parent="DebugFrame/CommandHelp/TabContainer"]
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
-margin_top = 42.0
+margin_top = 32.0
 margin_right = -4.0
 margin_bottom = -4.0
 
@@ -243,12 +265,46 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Method Calls" type="Tabs" parent="DebugFrame/CommandHelp/TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DebugFrame/CommandHelp/TabContainer/Method Calls"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 1.49829
+margin_right = 1.49829
+bbcode_enabled = true
+text = "You can use the console to manually call methods on any object in your scene, even on singletons. The only two conditions are that the object must exist in your scene somewhere, and it must have the method you've typed. You can call custom methods on nodes with scripts attached to them as well.
+
+It's important to note that this is case-sensitive, so you must type both the object and method names exactly as they appear in your scenes or scripts.
+
+ex: Label.hide
+
+Typing that will call the \"hide\" method on the object \"Label\" within the scene if both exist.
+
+This can also accept up to 3 optional arguments separated by spaces if the method requires them.
+
+ex: Label.set_scale Vector2(2, 2)
+
+One limitation to keep in mind is that if you have multiple nodes with the same name in your scene then whatever method you call will only affect the first instance of that node in your scene tree hierarchy. So it's best to give all your nodes unique names.
+
+
+Note: When debugging your game in the editor, if you call a method without giving it the correct number of expected arguments, your game will crash. However, in an exported game, regardless of if it's in debug mode or not, the method call will simply be ignored if it's missing arguments or they're invalid."
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="About" type="Tabs" parent="DebugFrame/CommandHelp/TabContainer"]
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
-margin_top = 42.0
+margin_top = 32.0
 margin_right = -4.0
 margin_bottom = -4.0
 
@@ -262,5 +318,14 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Timer" type="Timer" parent="DebugFrame"]
+pause_mode = 2
+wait_time = 0.05
+one_shot = true
+__meta__ = {
+"_editor_description_": "Timer used to wait for screenshot."
+}
+
 [connection signal="cursor_changed" from="DebugFrame/Output" to="DebugFrame/Input" method="_on_Output_cursor_changed"]
 [connection signal="text_entered" from="DebugFrame/Input" to="DebugFrame/Input" method="_on_Input_text_entered"]
+[connection signal="timeout" from="DebugFrame/Timer" to="DebugFrame/Input" method="_on_Timer_timeout"]

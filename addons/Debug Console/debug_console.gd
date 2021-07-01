@@ -35,7 +35,7 @@ var file: String # File name for a screenshot
 var screenshot: Image # The actual screenshot
 var taking_screenshot: bool # Flag for the console so it knows we're busy
 var calling_func: bool # Flag for the console so it knows we're busy
-var user_path: String
+var user_path: String # The user directory either res:// or user://
 
 # GUI vars
 onready var output = get_parent().get_node("Output")
@@ -51,40 +51,40 @@ func _on_Input_text_entered(new_text: String):
 	self.clear()
 	self.placeholder_text = "" # Get rid of the placeholder text
 	var command = input_text.to_lower().split(" ")
-	if input_text == "help": # Display list of commands
-		self.placeholder_text = "Here is a list of commands"
-		get_parent().get_node("CommandHelp").popup()
-	if input_text == "clear": # Clear all output
-		self.clear()
-		output.text = ''
-	if input_text == "quit": # Closes the game
-		get_tree().quit(0)
-	if taking_screenshot == true:
-		file = new_text
-		self.placeholder_text = ""
-		screenshot.save_png(user_path + "Screenshots/" + file + ".png")
+	match input_text:
+		"help": # Display list of commands
+			self.placeholder_text = "Here is a list of commands"
+			get_parent().get_node("CommandHelp").popup()
+		"clear": # Clear all output
+			self.clear()
+			output.text = ''
+		"quit": # Closes the game
+			get_tree().quit(0)
 	if "." in new_text: # If were calling a method on an object
 		var entity = new_text.split(".")
 		var final_entity = entity[1].split(" ")
 		var option = new_text.strip_edges().split(" ")
 		option.remove(0)
 		call_func(str(entity[0]), str(final_entity[0]), option)
-	if err == OK && command.size() == 1 && !taking_screenshot == true && \
-	calling_func == false:
-		commands(command[0], "", "")
-	elif err == OK && command.size() == 2 && !taking_screenshot == true && \
-	calling_func == false:
-		commands(command[0], command[1])
-	elif err == OK && command.size() == 3 && !taking_screenshot == true && \
-	calling_func == false:
-		commands(command[0], command[1], command[2])
+	if !taking_screenshot && !calling_func: # If we're not busy, use the command
+		match command.size(): # Match the command size
+			1:
+				commands(command[0], "", "")
+			2:
+				commands(command[0], command[1])
+			3:
+				commands(command[0], command[1], command[2])
+			_:
+				last_command = new_text
+				output.text += "Unknown command, " + "<" + new_text + ">" + \
+				" not recognized" + '\n'
+	if taking_screenshot == true:
+		file = new_text
+		self.placeholder_text = ""
+		screenshot.save_png(user_path + "Screenshots/" + file + ".png")
 	elif err == OK && taking_screenshot == true:
 		output.text += "Screenshot " + file + " saved." + '\n'
 		taking_screenshot = false
-	elif err != OK && taking_screenshot == false && calling_func == false:
-		last_command = new_text
-		output.text += "Unknown command, " + "<" + new_text + ">" + \
-		" not recognized" + '\n'
 	calling_func = false
 	taking_screenshot = false
 
@@ -110,18 +110,18 @@ func _on_Timer_timeout():
 	self.grab_focus()
 
 
+func _on_CommandHelp_popup_hide():
+	self.placeholder_text = ""
+
+
 func _enter_tree():
 	if enable_console == false: # If console is disabled, remove it
 		self.get_parent().get_parent().queue_free()
-	if user_space == true:
+	if user_space == true: # Sets the user-path based on the user_space flag
 		user_path = "user://"
 	else:
 		user_path = "res://"
-	
-func _notification(what):
-	if what == ERR_SCRIPT_FAILED:
-		if calling_func == true:
-			output.text += "There was a error."
+
 
 func _ready():
 	var os = OS.get_name()
@@ -147,7 +147,7 @@ func _ready():
 func _process(delta): # Only FPS needs to be measured as fast as possible
 	var fps = Engine.get_frames_per_second()
 	fps_counter.text = "FPS: " + str(fps)
-	
+
 
 func _physics_process(delta): # Process info
 	var debug_smem = OS.get_static_memory_usage()
@@ -225,7 +225,7 @@ func commands(prefix: String, command: String = "", Option: String = ""):
 			mod_alias("msaa", command)
 		"vsync":
 			mod_window("vsync")
-		"shoot": # Take a screenshot of the viewport
+		"shoot", "screenshot": # Take a screenshot of the viewport
 			take_screenshot()
 		"fov", "field_of_view": # Modify the field of view in 3D scenes
 			mod_fov(command)
@@ -428,19 +428,20 @@ func call_func(object: String, method: String, option: Array):
 		output.text += "<" + str(object) + ">" + \
 			" doesn't exist in the current scene." + '\n'
 	if method != "" && a != null: # Make sure they actually entered a method
-		if a.has_method(method) :
-			if option.size() == 0: # Check if there's any optional argument set
-				a.call(method) # Call the method on the object
-			if option.size() == 1: # Use optional arguments if we have any
-				a.call(method, str2var(option[0]))
-			elif option.size() == 2:
-				a.call(method, str2var(option[0]), str2var(option[1]))
-			elif option.size() == 3:
-				a.call(method, str2var(option[0]), str2var(option[1]), \
-				str2var(option[2]))
-			else:
-				output.text += "You've entered more arguments than " + \
-				"the console can process." + '\n'
+		if a.has_method(method):
+			match option.size():
+				0: # Check if there's any optional argument set
+					a.call(method) # Call the method on the object
+				1: # Use optional arguments if we have any
+					a.call(method, str2var(option[0]))
+				2:
+					a.call(method, str2var(option[0]), str2var(option[1]))
+				3:
+					a.call(method, str2var(option[0]), str2var(option[1]), \
+					str2var(option[2]))
+				_:
+					output.text += "You've entered more arguments than " + \
+					"the console can process." + '\n'
 			output.text += str(method) + " called on " + str(object) + '\n'
 		else:
 			output.text += "<" + str(object) + ">" + " doesn't have method " \

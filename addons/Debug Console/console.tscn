@@ -328,4 +328,5 @@ __meta__ = {
 
 [connection signal="cursor_changed" from="DebugFrame/Output" to="DebugFrame/Input" method="_on_Output_cursor_changed"]
 [connection signal="text_entered" from="DebugFrame/Input" to="DebugFrame/Input" method="_on_Input_text_entered"]
+[connection signal="popup_hide" from="DebugFrame/CommandHelp" to="DebugFrame/Input" method="_on_CommandHelp_popup_hide"]
 [connection signal="timeout" from="DebugFrame/Timer" to="DebugFrame/Input" method="_on_Timer_timeout"]

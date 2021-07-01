@@ -60,6 +60,11 @@ func _on_Input_text_entered(new_text: String):
 			output.text = ''
 		"quit": # Closes the game
 			get_tree().quit(0)
+	if taking_screenshot == true:
+		file = new_text
+		self.placeholder_text = ""
+		screenshot.save_png(user_path + "Screenshots/" + file + ".png")
+		output.text += "Screenshot " + file + " saved." + '\n'
 	if "." in new_text: # If were calling a method on an object
 		var entity = new_text.split(".")
 		var final_entity = entity[1].split(" ")
@@ -78,13 +83,6 @@ func _on_Input_text_entered(new_text: String):
 				last_command = new_text
 				output.text += "Unknown command, " + "<" + new_text + ">" + \
 				" not recognized" + '\n'
-	if taking_screenshot == true:
-		file = new_text
-		self.placeholder_text = ""
-		screenshot.save_png(user_path + "Screenshots/" + file + ".png")
-	elif err == OK && taking_screenshot == true:
-		output.text += "Screenshot " + file + " saved." + '\n'
-		taking_screenshot = false
 	calling_func = false
 	taking_screenshot = false
 

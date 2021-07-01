@@ -88,7 +88,6 @@ __meta__ = {
 "_edit_use_anchors_": false,
 "_editor_description_": "Input for user commands while in-game."
 }
-user_space = true
 
 [node name="DebugLabelVbox" type="VBoxContainer" parent="DebugFrame"]
 anchor_left = 1.0

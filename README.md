@@ -23,6 +23,7 @@ Below is a list of all available commands that the debug console will accept. It
 - help
 - clear
 - quit
+- shoot
 - cr `int,int`
 - mw `fullscreen, windowed, borderless, bordered`
 - mt `float`
